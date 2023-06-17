@@ -96,6 +96,31 @@ namespace MarcRocNy.Common.Extensions
 
         #endregion
 
+        #region MaxT
+
+        [Fact]
+        public void MaxT_ChooseNumber()
+        {
+            var list = new[] { (1, "one"), (0, "zero"), (2, "two") };
+            list.MaxT(t => t.Item1).Should().Be((2, "two"));
+        }
+
+        [Fact]
+        public void MaxT_ChooseString()
+        {
+            var list = new[] { (1, "one"), (0, "zero"), (2, "two") };
+            list.MaxT(t => t.Item2).Should().Be((0, "zero"));
+        }
+
+        [Fact]
+        public void MaxT_ChooseWeird()
+        {
+            var list = new[] { (1, "one"), (0, "zero"), (2, "two") };
+            list.MaxT(t => t.Item1 + t.Item2.Length).Should().Be((2, "two"));
+        }
+
+        #endregion
+
         #region Equality
 
         [Theory]

@@ -39,6 +39,15 @@ namespace MarcRocNy.Common.Extensions
             }
         }
 
+        /// <summary>
+        /// This is just an example. There are variations even beyond the builtin `Max` variations. It does show the strength of thinking inside the
+        /// possibilities of the aggregate/fold operation.
+        /// </summary>
+        /// <returns>The full object for which the selected part is largest within the set.</returns>
+        public static TSource MaxT<TSource, TCompare>(this IEnumerable<TSource> source, Func<TSource, TCompare> comparableSelector)
+            where TCompare : IComparable
+            => source.Aggregate((l, r) => comparableSelector(l).CompareTo(comparableSelector(r)) > 0 ? l : r);
+
         #region Set Operations
 
         /// <summary>
