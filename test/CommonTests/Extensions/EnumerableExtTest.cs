@@ -26,7 +26,7 @@ public class EnumerableExtTest
         var safe = source.Safe();
         safe.Should().NotBeNull();
         safe.Should().BeSameAs(source);
-        safe.Should().BeEquivalentTo(new[] { "one", "two", "three" });
+        safe.Should().BeEquivalentTo(["one", "two", "three"], o => o.WithStrictOrdering());
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class EnumerableExtTest
         var safe = source.Safe();
         safe.Should().NotBeNull();
         safe.Should().BeSameAs(source);
-        safe.Should().BeEquivalentTo(new[] { "one", "two", "three" });
+        safe.Should().BeEquivalentTo(["one", "two", "three"], o => o.WithStrictOrdering());
     }
 
     #endregion
@@ -47,7 +47,7 @@ public class EnumerableExtTest
     public void Clone_EmptyList_ReturnsEmptyList()
     {
         //Setup
-        List<int> list = new();
+        List<int> list = [];
 
         //Act
         var empty = list.Clone();
@@ -60,7 +60,7 @@ public class EnumerableExtTest
     public void Clone_NonEmptyList_ReturnsClonedList()
     {
         //Setup
-        List<int> list = new() { 1 };
+        List<int> list = [1];
 
         //Act
         var empty = list.Clone();
@@ -73,7 +73,7 @@ public class EnumerableExtTest
     public void Clone_MultipleElements_ReturnsClonedList()
     {
         //Setup
-        List<int> list = new() { 1, 2 };
+        List<int> list = [1, 2];
 
         //Act
         var empty = list.Clone();
@@ -89,9 +89,10 @@ public class EnumerableExtTest
     [Fact]
     public void TrySelect_BasicUsage()
     {
-        var tryParse = (new[] { "1", "two", "3" }).TrySelect(s => (int.TryParse(s, out int i), i));
+        string[] strings = ["1", "two", "3"];
+        var tryParse = strings.TrySelect(s => (int.TryParse(s, out int i), i));
 
-        tryParse.Should().BeEquivalentTo(new[] { 1, 3 });
+        tryParse.Should().BeEquivalentTo([1, 3], o => o.WithStrictOrdering());
     }
 
     #endregion
@@ -115,8 +116,8 @@ public class EnumerableExtTest
     [Fact]
     public void MaxT_ChooseWeird()
     {
-        var list = new[] { (1, "one"), (0, "zero"), (2, "two") };
-        list.MaxT(t => t.Item1 + t.Item2.Length).Should().Be((2, "two"));
+        var list = new[] { (1, "odeen"), (0, "zero"), (2, "two") };
+        list.MaxT(t => t.Item1 + t.Item2.Length).Should().Be((1, "odeen"));
     }
 
     #endregion
@@ -199,61 +200,61 @@ public class EnumerableExtTest
     [Fact]
     public void SplitList_ValidParams_ReturnExpectedSplitList()
     {
-        IEnumerable<int> list = new List<int>() { 1, 2, 3, 4, 5 };
+        IEnumerable<int> list = [1, 2, 3, 4, 5];
         var splitListExpected = new List<List<int>>()
         {
-            new List<int>() {1,2},
-            new List<int>() {3,4},
-            new List<int>() {5}
+            new() {1,2},
+            new() {3,4},
+            new() {5}
         };
 
         var splitList = list.SplitList(2);
-        splitList.Should().BeEquivalentTo(splitListExpected);
+        splitList.Should().BeEquivalentTo(splitListExpected, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void SplitList_ValidParams_ExactSplit_ReturnExpectedSplitList()
     {
-        IEnumerable<int> list = new List<int>() { 1, 2, 3, 4, 5, 6 };
+        IEnumerable<int> list = [1, 2, 3, 4, 5, 6];
         var splitListExpected = new List<List<int>>()
         {
-            new List<int>() {1,2},
-            new List<int>() {3,4},
-            new List<int>() {5,6}
+            new() {1,2},
+            new() {3,4},
+            new() {5,6}
         };
 
         var splitList = list.SplitList(2);
-        splitList.Should().BeEquivalentTo(splitListExpected);
+        splitList.Should().BeEquivalentTo(splitListExpected, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void SplitList_SizeOfSplitsLarge_ReturnExpectedSplitList()
     {
-        IEnumerable<int> list = new List<int>() { 1, 2, 3, 4, 5 };
+        IEnumerable<int> list = [1, 2, 3, 4, 5];
         var splitListExpected = new List<List<int>>()
         {
-            new List<int>() { 1, 2, 3, 4, 5 }
+            new() { 1, 2, 3, 4, 5 }
         };
 
         var splitList = list.SplitList(10);
-        splitList.Should().BeEquivalentTo(splitListExpected);
+        splitList.Should().BeEquivalentTo(splitListExpected, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void SplitList_EmptyList_ReturnExpectedSplitList()
     {
-        IEnumerable<int> list = new List<int>() { };
+        IEnumerable<int> list = [];
         var splitListExpected = new List<List<int>>();
 
         var splitList = list.SplitList(2);
-        splitList.Should().BeEquivalentTo(splitListExpected);
+        splitList.Should().BeEquivalentTo(splitListExpected, o => o.WithStrictOrdering());
     }
 
 
     [Fact]
     public void SplitList_SizeOfSplitsZero_ReturnExpectedSplitList()
     {
-        IEnumerable<int> list = new List<int>() { 1, 2, 3, 4, 5 };
+        IEnumerable<int> list = [1, 2, 3, 4, 5];
 
         Action a = () => list.SplitList(0);
         a.Should().Throw<ArgumentException>();
@@ -266,7 +267,7 @@ public class EnumerableExtTest
     [Fact]
     public void GetPage_SizeZero_Throws()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
         var enumerator = source.GetEnumerator();
 
         Action a = () => _ = enumerator.GetPage(0).GetEnumerator().MoveNext();
@@ -276,39 +277,39 @@ public class EnumerableExtTest
     [Fact]
     public void GetPage_MoreThanPage_Expected()
     {
-        IEnumerable<int> source = new [] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
         var expectedPage = new[] { 1, 2, 3 };
 
         var page = source.GetEnumerator().GetPage(3);
-        page.Should().BeEquivalentTo(expectedPage);
+        page.Should().BeEquivalentTo(expectedPage, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void GetPage_SecondPage_Expected()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
         var expectedPage = new[] { 4, 5 };
 
         var enumerator = source.GetEnumerator();
         _ = enumerator.GetPage(3).ToList();
         var page = enumerator.GetPage(3);
-        page.Should().BeEquivalentTo(expectedPage);
+        page.Should().BeEquivalentTo(expectedPage, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void GetPage_SameSize_Expected()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
         var expectedPage = new[] { 1, 2, 3, 4, 5 };
 
         var page = source.GetEnumerator().GetPage(5);
-        page.Should().BeEquivalentTo(expectedPage);
+        page.Should().BeEquivalentTo(expectedPage, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void GetPage_Exhausted_Expected()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
 
         var enumerator = source.GetEnumerator();
         _ = enumerator.GetPage(5).ToList();
@@ -319,17 +320,17 @@ public class EnumerableExtTest
     [Fact]
     public void GetPage_LessThanPage_ReturnExpected()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
         var expectedPage = new[] { 1, 2, 3, 4, 5 };
 
         var page = source.GetEnumerator().GetPage(8);
-        page.Should().BeEquivalentTo(expectedPage);
+        page.Should().BeEquivalentTo(expectedPage, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void GetPage_Empty_ReturnExpected()
     {
-        IEnumerable<int> source = Array.Empty<int>();
+        IEnumerable<int> source = [];
 
         var page = source.GetEnumerator().GetPage(8);
         page.Should().BeEmpty();
@@ -342,7 +343,7 @@ public class EnumerableExtTest
     [Fact]
     public void Paginate_SizeZero_Throws()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
 
         Action a = () => source.Paginate(0).GetEnumerator().MoveNext();
         a.Should().Throw<ArgumentOutOfRangeException>();
@@ -351,7 +352,7 @@ public class EnumerableExtTest
     [Fact]
     public void Paginate_IterateOuterOnly_Throws()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
 
         var pages = source.Paginate(2);
         Action a = () => _ = pages.ToList();
@@ -362,7 +363,7 @@ public class EnumerableExtTest
     [Fact]
     public void Paginate_PartialIterateInner_Throws()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
 
         var pages = source.Paginate(2);
         Action a = () => _ = pages.Select(p => p.First()).ToList();
@@ -373,41 +374,41 @@ public class EnumerableExtTest
     [Fact]
     public void Paginate_MoreThanPage_ReturnExpected()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
-        var expectedPages = new[] { new[] { 1, 2, 3 }, new[] { 4, 5 } };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
+        var expectedPages = new[] { new[] { 1, 2, 3 }, [4, 5] };
 
         var pages = source.Paginate(3);
-        pages.Select(p => p.ToList()).Should().BeEquivalentTo(expectedPages);
+        pages.Select(p => p.ToList()).Should().BeEquivalentTo(expectedPages, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void Paginate_SameSize_ReturnExpected()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
         var expectedPages = new[] { new[] { 1, 2, 3, 4, 5 } };
 
         var pages = source.Paginate(5);
-        pages.Select(p => p.ToList()).Should().BeEquivalentTo(expectedPages);
+        pages.Select(p => p.ToList()).Should().BeEquivalentTo(expectedPages, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void Paginate_LessThanPage_ReturnExpected()
     {
-        IEnumerable<int> source = new[] { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = [1, 2, 3, 4, 5];
         var expectedPages = new[] { new[] { 1, 2, 3, 4, 5 } };
 
         var pages = source.Paginate(8);
-        pages.Select(p => p.ToList()).Should().BeEquivalentTo(expectedPages);
+        pages.Select(p => p.ToList()).Should().BeEquivalentTo(expectedPages, o => o.WithStrictOrdering());
     }
 
     [Fact]
     public void Paginate_Empty_ReturnExpected()
     {
-        IEnumerable<int> source = Array.Empty<int>();
+        IEnumerable<int> source = [];
         var expectedPages = Array.Empty<int[]>();
 
         var pages = source.Paginate(8);
-        pages.Select(p => p.ToList()).Should().BeEquivalentTo(expectedPages);
+        pages.Select(p => p.ToList()).Should().BeEquivalentTo(expectedPages, o => o.WithStrictOrdering());
     }
 
     #endregion
@@ -429,7 +430,7 @@ public class EnumerableExtTest
         var source = new[] { 1, 2, 3 };
 
         source.AnyContinueOnce(out var ifAny).Should().BeTrue();
-        ifAny.Should().BeEquivalentTo(new[] { 1, 2, 3 });
+        ifAny.Should().BeEquivalentTo([1, 2, 3], o => o.WithStrictOrdering());
 
         // don't try again, the underlying enumerator is all used up
         // if you need to re-enumerate, just go back to the source
@@ -441,6 +442,8 @@ public class EnumerableExtTest
 
     #region NullIfEmpty
 
+    private static readonly int[] fib_five = [1, 2, 3, 5, 8];
+
     [Fact]
     public void NullIfEmpty_Empty_Null()
     {
@@ -450,7 +453,7 @@ public class EnumerableExtTest
     [Fact]
     public void NullIfEmpty_NonEmpty_Same()
     {
-        new[] { 1, 2, 3, 5, 8 }.NullIfEmpty().Should().BeEquivalentTo(new List<int> { 1, 2, 3, 5, 8 });
+        fib_five.NullIfEmpty().Should().BeEquivalentTo([1, 2, 3, 5, 8], o => o.WithStrictOrdering());
     }
 
     [Fact]
@@ -462,7 +465,7 @@ public class EnumerableExtTest
     [Fact]
     public void ToListNullIfEmpty_NonEmpty_List()
     {
-        new[] { 1, 2, 3, 5, 8 }.NullIfEmptyToList().Should().BeEquivalentTo(new List<int> { 1, 2, 3, 5, 8 });
+        fib_five.NullIfEmptyToList().Should().BeEquivalentTo([1, 2, 3, 5, 8], o => o.WithStrictOrdering());
     }
 
     [Fact]
@@ -480,7 +483,7 @@ public class EnumerableExtTest
     [Fact]
     public void SafeAggregate_NonEmpty_Works()
     {
-        new[] { 1, 2, 3, 5, 8 }.SafeAggregate((l, r) => l + r).Should().Be(19);
+        fib_five.SafeAggregate((l, r) => l + r).Should().Be(19);
     }
 
     #endregion

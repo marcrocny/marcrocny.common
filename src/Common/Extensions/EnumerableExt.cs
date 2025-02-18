@@ -53,7 +53,7 @@ public static class EnumerableExt
     /// <summary>
     /// Selects a distinct set of items based on the equality of the keys.
     /// </summary>
-    public static IEnumerable<T> Distinct<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector)
+    public static IEnumerable<T> Distinct<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector) where TKey : notnull
     {
         var comparer = new KeyEqualityComparer<T, TKey>(keySelector);
         return source.Distinct(comparer);
@@ -87,7 +87,8 @@ public static class EnumerableExt
     /// Equality counterpart to <see cref="SetEquals{T}(IEnumerable{T}, IEnumerable{T}, IEqualityComparer{T})"/>.
     /// Should only be used if immutability during use can be guaranteed.
     /// </summary>
-    public static int HashCodeSet<T>(this IEnumerable<T> source, IEqualityComparer<T> equalityComparer) 
+    public static int HashCodeSet<T>(this IEnumerable<T> source, IEqualityComparer<T> equalityComparer)
+        where T : notnull
         => source.Distinct(equalityComparer).Aggregate(0, (n, t) => n ^ equalityComparer.GetHashCode(t));
 
     /// <summary>
@@ -104,6 +105,7 @@ public static class EnumerableExt
     /// Should only be used if immutability during use can be guaranteed.
     /// </summary>
     public static int HashCodeSequence<T>(this IEnumerable<T> source, IEqualityComparer<T> equalityComparer)
+        where T : notnull
         => source.Aggregate(0, (n, t) => (n, equalityComparer.GetHashCode(t)).GetHashCode());
 
     #endregion Set
@@ -122,7 +124,7 @@ public static class EnumerableExt
     /// </exception>
     public static IEnumerable<IEnumerable<T>> Paginate<T>(this IEnumerable<T> source, int pageSize)
     {
-        if (pageSize <= 0) throw new ArgumentOutOfRangeException(nameof(pageSize));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
 
         var enumerator = source.GetEnumerator();
         bool elementsRemain = enumerator.MoveNext();
@@ -151,7 +153,7 @@ public static class EnumerableExt
     /// </summary>
     public static List<List<T>> SplitList<T>(this IEnumerable<T> listEnumerable, int sizeOfSplits)
     {
-        if (sizeOfSplits <= 0) throw new ArgumentOutOfRangeException(nameof(sizeOfSplits));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeOfSplits);
 
         return listEnumerable.Paginate(sizeOfSplits).Select(p => p.ToList()).ToList();
     }
@@ -164,7 +166,7 @@ public static class EnumerableExt
     /// </returns>
     public static IEnumerable<T> GetPage<T>(this IEnumerator<T> enumerator, int pageSize)
     {
-        if (pageSize <= 0) throw new ArgumentOutOfRangeException(nameof(pageSize));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
 
         for (int i = 0; i < pageSize; i++)
         {
@@ -236,29 +238,23 @@ public static class EnumerableExt
     #endregion
 }
 
-internal sealed class KeyEqualityComparer<T, TKey> : IEqualityComparer<T>
+internal sealed class KeyEqualityComparer<T, TKey>(Func<T, TKey> keySelector, IEqualityComparer<TKey> equalityComparer) : IEqualityComparer<T>
+    where TKey : notnull
 {
-    private readonly IEqualityComparer<TKey> _equalityComparer;
-    private readonly Func<T, TKey> _keySelector;
-
     public KeyEqualityComparer(Func<T, TKey> keySelector)
         : this(keySelector, EqualityComparer<TKey>.Default)
     {
     }
 
-    public KeyEqualityComparer(Func<T, TKey> keySelector, IEqualityComparer<TKey> equalityComparer)
+    public bool Equals(T? x, T? y)
     {
-        _keySelector = keySelector;
-        _equalityComparer = equalityComparer;
-    }
-
-    public bool Equals(T x, T y)
-    {
-        return _equalityComparer.Equals(_keySelector(x), _keySelector(y));
+        if (x == null) return y == null;
+        if (y == null) return false;
+        return equalityComparer.Equals(keySelector(x), keySelector(y));
     }
 
     public int GetHashCode(T obj)
     {
-        return _equalityComparer.GetHashCode(_keySelector(obj));
+        return equalityComparer.GetHashCode(keySelector(obj));
     }
 }
