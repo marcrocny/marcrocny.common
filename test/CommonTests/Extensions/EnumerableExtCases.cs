@@ -6,18 +6,18 @@ namespace MarcRocNy.Common.Extensions;
 
 internal class EnumerableExtCases
 {
-    public static IEnumerable<TheoryDataRow<int[]?>> EmptyAndNullInts()
+    public static IEnumerable<TheoryDataRow<IEnumerable<int>?>> EmptyAndNullInts()
     {
         yield return new(null);
         yield return new([]);
-        //yield return new(new List<int>(0));
+        yield return new(new List<int>(0));
     }
 
-    public static IEnumerable<TheoryDataRow<string[]>> EnumsWithThings()
+    public static IEnumerable<TheoryDataRow<IEnumerable<string>>> EnumsWithThings()
     {
         yield return new(["one", "two", "three"]);
-        //yield return new(new List<string> { "one", "two", "three" });
-        //yield return new(new[] { "one", "two", "three" }.NullIfEmptyToList()!);
+        yield return new(new List<string> { "one", "two", "three" });
+        yield return new(new[] { "one", "two", "three" }.NullIfEmptyToList()!);
     }
 
     public static IEnumerable<TheoryDataRow<string[], string[], bool>> EnumerableEqualityCases()
@@ -53,7 +53,4 @@ internal class EnumerableExtCases
             false
         );
     }
-
-    public static IEnumerable<TheoryDataRow<string[], string[]>> EnumerableEqualityCasesBare()
-        => EnumerableEqualityCases().Select(c => new TheoryDataRow<string[], string[]>(c.Data.Item1, c.Data.Item2));
 }
