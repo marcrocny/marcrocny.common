@@ -1,47 +1,89 @@
 # Good acronym, bad ordering?
+
 SOLID principles are helpful to remember when crafting and reviewing new code with an eye towards maintainability. When coding in C# though, the way that I consider the ordering is very different to the acronym itself.
 
 - **S**ingle responsibility (SRP) - a method (or class) should do only one thing and do it well.
-- **O**pen/closed - less opaque: Open for extension, Closed for modification.
+- **O**pen/closed - open for extension, Closed for modification.
 - **L**iskov substitution - subclasses should be substitutable for base classes without changes in behavior of the consuming code.
 - **I**nterface segregation - "Many client-specific interfaces are better than one general-purpose interface."
 - **D**ependency inversion - wherever possible, dependencies should be abstractions, not concrete implementations.
 
 The acronym is cool, but does it reflect reality? That is:
 
-- Will all of these be used every day in a given language? Does the language syntax itself guide along these lines?
-- Is there a language pattern that is easy to understand and fosters these goals, but doesn't map cleanly or all to a single SOLID principle?
+- Will all of these be used every day in a given language? 
+  - Does the language syntax itself guide along these lines?
+  - Do these affect our daily program-structure decisions?
+- Are there language patterns that are easier to understand but still foster these goals, even if they don't map cleanly to the SOLID principles?
+  - Are there other principles that might be less opaque AND cover these easily?
 - Are there any SOLID principles that in practice follow directly from another?
-- Are there other principles that might be less opaque AND cover these easily?
 
 I think any and all of these may be the case.
 
-# Let's explore: other candidates
+# Let's explore other candidates
 
-There's a lot of advice out there. Here's a few that I like for C#, let's see how these map onto SOLID, and if they are (in a sense) isomorphic.
+There's a lot of advice out there. These are a few for C#,that for me have stood the test of time. Let's unpack and see how these might map onto SOLID.
 
-## Use Dependency Injection (DI)
+## Advice #1: Use Dependency Injection (DI)
 
-Note that this does *not* mean the use of any particular DI (AKA "IoC") container/framework. Microsoft includes its own now, but also note: this doesn't mean that you have to use *any* kind of framework. A while back, folks like Mark Seeman would even advocate for "poor man's DI" in situations with small dependency graphs and short program lifetime: using constructor injection and just "`new`ing up" the graph as needed.
+From the beginning: a _dependency_ is code or functionality external to code within some boundary (method, class, namespace, assembly) that it needs to complete its assigned responsibility.
 
-So if we're not joining the container wars (which have probably died down by now; didn't Autofac win?) then what is this about?
+(Nothing here _enforces_ that singular "responsibility", but I'm standing by it.)
 
-Let's wind back the C# clock: before there were even shortcuts for this (or probably almost contemporaneously, because we software engineers are lazy and too clever by half) it became clear that classes that created and managed their dependencies internally were too complex, even when SRP (above) was otherwise followed. On top of their core purpose, they also had to handle things like object lifetimes and complex cleanup. Should those really have been part of their job? 
+Dependency _injection_ is the practice of managing (creating; destroying) dependencies externally to the dependent code and only injecting references to it. For classes strictest form enforces **constructor injection**: dependencies are consumed through constructor parameters; conversely, constructor parameters are only for consuming dependencies. The consumption point is clear and descriptive, and the class is fully "prepped" for activity on construction.
 
-Also, this implicitly breaks Dependency Inversion (sorry, DI is already taken) because even if we've "coded to interfaces" the class needs to know what implementation to use so it can build and manage it. The alternatives were to either
-- accept breakage and further break SRP by just putting the functionality in the class, or
-- accept the situation.
+Note that I have _not_ mentioned the use of any particular DI (AKA "IoC") container/framework, or even _any_ framework. That is possible and sometime preferrable in situations with small dependency graphs and short program lifetime: using constructor injection and just "`new`ing up" the graph as needed. Using a framework can save brain-cycles, but when CPU cycles are at a premium you can stay close to the metal.
 
-### Service Locator to the rescue?
+In order to see the benefits, let's consider prior alternatives. I'll try my best to "steel-man" these models, not undercut them with bad practices.
 
-A pattern/tool that seems to fix the problem is using a Service Locator (which most any DI container can be subverted to implement). Instead of the class breaking Dep. Inversion, allow it to access a component (usually global) that allows it to *resolve* an implementation when given a contract/interface. Inversion intact!
+### How we got here
 
-But problem: the class still has to manage everything it creates. In C#, this can be an issue if these are **disposable** (that is, require resource cleanup). To any (astute? too clever?) developer, this plumbing just *feels* (one might say "smells") like a concern that could be DRY'd away.
+Let's wind back the C# clock: before there were even shortcuts for this (or probably almost contemporaneously with the shortcuts, because we software engineers are lazy and too clever by half) it became clear that classes that created and managed their dependencies internally were too complex, even when **Single Responsibility** was otherwise followed. On top of their core purpose, they also had to handle things like object lifetimes and complex cleanup. Should that boilerplate/plumbing really have been part of their job? 
 
-The solution 
+This also implicitly breaks **Dependency Inversion** because even if we've "coded to interfaces" the class needs to know what implementation to use so it can build and manage it. 
+
+Maybe this is _somewhat_ acceptable. Can this leakage be "contained" in the constructor and `Dispose()`?
+
+### Difficulties even with non-inverted strict style
+
+Alternate implementations (e.g. [service locator](why_not_service_locator.md)) ...
+
+Testing ...
+
+Alternate lifetimes: singleton dependencies; factories ...
+
+### Factories point the way
+
+Move dependency construction out of the constructor ...
+
+Move cleanup out of `Dispose()` (lifetime scopes) ...
+
+### Mapping back to SOLID
+
+Dependency management become a "single responsibility" managed elsewhere. ...
+
+Very clean inversion: concrete dependecies nowhere in sight. ...
+
+### Other benefits
+
+Clear boundaries. ...
+
+Clear listing of dependencies. ...
+
+### Go heavy on the "USE"
+
+Really dig in; once you've got one or two tools (along with just "newing up," don't ignore that!) really seek to deepen your understanding of what they can do and how they should be properly used. 
 
 
-## Code to interfaces
+## Advice #2: Code to interfaces
 
-## Favor composition over inheritance
+In a sense, this is the component- or module-oriented analogue to pure functions in FP. ...
 
+
+## Advice #3: Favor composition over inheritance
+
+...
+
+
+## Advice #4: You're not writing code for the machine, you're writing it for other developers
+
+Focus on optimizing the _developer experience_ before optimizing for the machine. ...
