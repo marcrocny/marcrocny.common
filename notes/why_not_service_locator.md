@@ -10,7 +10,7 @@ Consider a service `ProfileService` that has a dependency on `IImageHandler`. Fo
 
 Now we move on to implement `IImageHandler`. We build `FileImageHandler` in a similar DDD fashion, relying on `IFileStore`. We create a `BasicFileStoreImpl`, it has a dependency on singleton configuration, easy peasy. In every case, the implementations build their dependencies by proxy, calling `ServiceLocator.Resolve<T>()`. Everything works.
 
-::: mermaid
+```mermaid
 classDiagram
   class PS["ProfileService"]
   class IH["IImageHandler"]
@@ -22,13 +22,13 @@ classDiagram
   FIH --|> IH
   FIH --> IFS
   BFS --|> IFS
-:::
+```
 
 ### What about managed resources?
 
 Now we want to introduce `CloudFileStoreImpl`. It contains a managed resource and must implement `IDisposable`.
 
-::: mermaid
+```mermaid
 classDiagram
   class PS["ProfileService"]
   class IH["IImageHandler"]
@@ -43,11 +43,11 @@ classDiagram
   BFS --|> IFS
   CFS --|> IFS
   CFS --|> IDisposable
-:::
+```
 
 Now the quandary begins: this method of `IDisposable` cannot be treated as an implementation detail. With `ServiceLocator` services build their own dependencies by proxy. They own them, so they have to clean them up. They can't simply let them get collected when de-referenced, disposal must be deterministic. First `IFileStore` will have to extend `IDisposable` to communicate this requirement upward. `BasicFileStoreImpl` will have to contain a no-op `Dispose()` implementation. `FileImageHandler` will have to implement it, communicate it through `IImageHandler` and then `ProfileService` itself will have to implement it to clean up its `IImageHandler` dependency.
 
-::: mermaid
+```mermaid
 classDiagram
   class PS["ProfileService"]
   class IH["IImageHandler"]
@@ -67,7 +67,7 @@ classDiagram
   FIH --|> IDisposable
   IH --|> IDisposable
   PS --|> IDisposable
-:::
+```
 
 This lifetime requirement of one low-level implementation has now has infected every other service and contract with `IDisposable`, many of which do not even need it. Not only does it infect upwards to dependent services, but also sideways. Once one implementation of a contract is managed, `IDisposable` becomes bound to the contract itself.
 
