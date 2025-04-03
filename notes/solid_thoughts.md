@@ -43,15 +43,65 @@ This also implicitly breaks **Dependency Inversion** because even if we've "code
 
 Maybe this is _somewhat_ acceptable. Can this leakage be "contained" in the constructor and `Dispose()`?
 
+``` csharp
+public class BasicDep { ... }
+
+public class ManagedDep : IDispose { ... }
+
+public class Dependent : IDispose // has to; it owns ManagedDep
+{
+  private readonly BasicDep basic;
+  private readonly ManagedDep managed;
+
+  public Dependent()
+  {
+    // easy peasy
+    basic = new();
+
+    // a little harder...
+    managed = new();
+  }
+
+  public void Dispose() 
+  {
+    // skipping over the full Dispose pattern...
+    managed.Dispose();
+  }
+}
+```
+
+Okay, not too bad. For configuration, you could go global (a la `app.config` 'n' `ConfiurationManager`) or just pass it through every later that needs it. That can get ugly though, and isn't strictly "uninjected". It does allow more flexibility in configuration though.
+
+We could also add interfaces for the dependencies, 
+
+```csharp
+public class Dependent : IDispose // has to; it owns ManagedDep
+{
+  private readonly IBasic basic;
+
+  public Dependent()
+  {
+    // contained in constructor, but so?
+    basic = new BasicDep();
+  }
+}
+```
+
+but it's less clear what utility that provides if the concrete constructor is being called directly anyway. 
+
 ### Difficulties even with non-inverted strict style
 
-Alternate implementations (e.g. [service locator](why_not_service_locator.md)) ...
+As the scenarios get more complicated the boilerplate does as well. This impinges more and more on the "single responsibility" of the class.
+
+If there are alternate implementations of dependencies the class has to "know" how to make decisions about which to choose. If that is
 
 Testing ...
 
 Alternate lifetimes: singleton dependencies; factories ...
 
 ### Factories point the way
+
+([service locator](why_not_service_locator.md)) ...
 
 Move dependency construction out of the constructor ...
 
