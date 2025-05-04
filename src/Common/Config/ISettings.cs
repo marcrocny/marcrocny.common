@@ -15,3 +15,14 @@ public interface ISettings
     /// </summary>
     static abstract string SectionName { get; }
 }
+
+// TODO: refine or remove
+//public interface ISettingsPointer
+//{
+//    //static abstract string SectionName { get; }
+//}
+
+//public interface ISettingsPointer<TSettings> : ISettingsPointer where TSettings : ISettings
+//{
+//    static string SectionName { get; } = TSettings.SectionName;
+//}
