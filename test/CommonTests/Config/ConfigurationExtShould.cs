@@ -22,7 +22,7 @@ public class ConfigurationExtShould
         string Connection = "",
         bool Active = false,
         ImplType Impl = ImplType.Dev
-        ) : ISettings
+        ) : ISettingPointer
     {
         public static string SectionName => "section";
 

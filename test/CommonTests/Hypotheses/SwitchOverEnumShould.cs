@@ -41,12 +41,14 @@ public class SwitchOverEnumShould
         // this could be escalated to an error
         Action act = () =>
         {
+#pragma warning disable CS8509 
             string foo = state switch
             {
                 ResultState.Success => "yay!",
                 ResultState.Warning => "hmm",
                 ResultState.ErrorOne => "dangit!",
             };
+#pragma warning restore CS8509 
         };
 
         act.Should().Throw<SwitchExpressionException>();

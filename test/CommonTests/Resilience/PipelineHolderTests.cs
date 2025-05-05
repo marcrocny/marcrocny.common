@@ -67,7 +67,7 @@ public class PipelineHolderTests
     /// solution "inverts" by using a marker-generic and conventional config.
     /// </summary>
     /// <typeparam name="TParentMarker"></typeparam>
-    public record RetryConfiguration<TParentMarker> : ISettings
+    public record RetryConfiguration<TParentMarker> : ISettingPointer
     {
         public static string SectionName { get; } = $"{typeof(TParentMarker).Name}:Retry";
 

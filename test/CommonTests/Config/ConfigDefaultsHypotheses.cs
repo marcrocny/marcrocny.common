@@ -18,11 +18,11 @@ public class ConfigDefaultsHypotheses
     public void GetWhenEmptyWithoutParameterless_ReturnsNull()
     {
         IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
+            .AddInMemoryCollection(
+            [
                 //["count"] = "4",
-                //["neume"] = "bar",
-            })
+                new("neume", "bar"),
+            ])
             .Build();
 
         configuration.Get<HasDefaults>().Should().BeNull(); //.BeEquivalentTo(new NoParameterless(Name: "bar"));
@@ -90,11 +90,11 @@ public class ConfigDefaultsHypotheses
     public void GetWhenEmptyWithoutDefaults_um()
     {
         IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
+            .AddInMemoryCollection(
+            [
                 //["count"] = "4",
-                ["name"] = "bar",
-            })
+                new("name", "bar"),
+            ])
             .Build();
 
         Action act = () => configuration.Get<NoDefaults>();
