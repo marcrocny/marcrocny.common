@@ -62,3 +62,4 @@ This isn't answerable directly with consumable code. This is part of the reason 
 this as a library. Instead, this is a pattern that uses the flexibility of C# generics to enable conventional
 configuration as a subsection of another configuration. You can see examples in the Resilience and Configuration
 test code.
+

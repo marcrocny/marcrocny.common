@@ -16,7 +16,7 @@ Got some good content, but it's a bit scattered. Need to redevelop the ideas wit
   - type ordering
   - is it ever necessary?
   - when would it really shine? (if it would?)
-  
+
 ----
 I recently reviewed a small project led by a teammate who is on fire for functional programming, with the zeal of a neophyte among heathens in a heathen land (read: F# fanboi in C# shop).
 
@@ -30,7 +30,7 @@ First a kind of obvious thing: the order-dependence of the types in `OneOf<..>` 
 
 This allows for sucessive short-circuit handling blocks with `TryPickT0(out var badOutcome, out var remainingOutcomes)`. It still isn't very pretty though.
 
-And unfortunately, this is a bit of a red herring. DUs will shine where you have multiple possible _successful_ return types that will have different handling in the consuming method. That will call for a different ordering-pattern. Perhaps "general-to-specific"? But what if they are peer-types? 
+And unfortunately, this is a bit of a red herring. DUs will shine where you have multiple possible _successful_ return types that will have different handling in the consuming method. That will call for a different ordering-pattern. Perhaps "general-to-specific"? But what if they are peer-types?
 
 (Or is that itself a red herring?)
 
@@ -63,10 +63,10 @@ But even with new guidance (derive from `System.Exception`; define your own app-
 So what error "levels" are there? This is a probably-incomplete list, from bare metal upward:
 
 - **System errors** that we can do nothing about: memory corruption, illegal stack frame access, out-of-bounds memory access. These likely win your process a one-way ticket to SIGKILL. Or maybe someone just tripped over a power cord.
-- **Environmental errors** that are out of our control: hard I/O, out-of-memory (which maybe belongs above). You may be able to log, it may or may not mean the end of your process, and might be open to retry.
-- **Code errors** (look in the mirror). These come in two flavors. 
+- **Environmental errors** that are out of our control: hard I/O, out-of-memory (which maybe belongs above), HTTP or DB connection timeouts. You may be able to log, it may or may not mean the end of your process, and might be open to retry.
+- **Code errors** (look in the mirror). These come in two flavors.
   - **Domain-level errors**: null-ref, arg-null, `ArgumentException`, overflows (numeric or stack). Some of these may even be intentionally composed and thrown by our code, but even then only as a guard against other poorly written code that didn't properly guard its own inputs. _And it's usually our own poorly written code._ You know you've done it. Bow your heads. _Mea culpa, mea culpa, mea maxima culpa._
-  - **Infrastructure errors**: API call errors (`400` mainly; `404` is _not_ an error), database errors. These are still our own fault, but because they involve references to other "living" systems there can often be a "historical bad data" (feels like someone else's fault) aspect to them. The path to fixing may be somewhat harder to navigate and have unique catch-22s. These are in a sense true "_application_ errors," as opposed to 
+  - **Infrastructure errors**: API call errors (`400` mainly; `404` is _not_ an error), database errors. These are still our own fault, but because they involve references to other "living" systems there can often be a "historical bad data" (feels like someone else's fault) aspect to them. The path to fixing may be somewhat harder to navigate and have unique catch-22s. These are in a sense true "_application_ errors," as opposed to
 - **User input errors**: invalid or otherwise corrupt input. It's our job to catch the bad ones (user's fault) and return a useful message _before_ they cause errors (our fault).
 - **Non-error "errors"**: e.g., authn, authz, not-found (`404`). These are only errors in the sense that some user expectation was dashed. From the engineering perspective these outcomes are (or should be) fully expected and accounted for.
 
@@ -82,7 +82,7 @@ At this point we've set the stage. Let's take a look at both systems side-by-sid
 
 ## Existing C# Usage & Idioms
 
-"Idioms" in computer languages refer to the ways we use the language to communicate intent in a way that was not explicitly designed into the language. "Idiomatic" usage means ways that are commonly (or organizationally) accepted. They are "patterns" writ small. 
+"Idioms" in computer languages refer to the ways we use the language to communicate intent in a way that was not explicitly designed into the language. "Idiomatic" usage means ways that are commonly (or organizationally) accepted. They are "patterns" writ small.
 
 The trouble is, as "idioms" they are often subtle and easy to misuse—the same way a human-language learner might trip over difficult idioms in their second language. In a sense, DUs are a language structure that—again [analagous](#foot-1)) to human langage—we might say, "has no equivalent expression in C#."
 
@@ -94,17 +94,17 @@ Nonetheless, the _idioms_ that are available to us allow for some level of logic
 
 .
 
-System errors would seem to transcend the language form. Whether or not a language has a means of catching exceptions, there are always some errors for which the only response is external to the executing code. Exception-catching does allow for some of that to be "pulled in" to the process, with a _possibility_ of graceful handling within the executing code. 
+System errors would seem to transcend the language form. Whether or not a language has a means of catching exceptions, there are always some errors for which the only response is external to the executing code. Exception-catching does allow for some of that to be "pulled in" to the process, with a _possibility_ of graceful handling within the executing code.
 
 But how often do you have to handle system errors? All ~~men~~ processes are equal before Death. Both situations may be largely equivalent here. I find it difficult to say that (somehow?) handling a system error in code before catastrophic exit is a significant advantage. This may be just a semantic "potayto, potahto" difference.
 
 Recoverable environmental errors are different though. Let's consider a database connection error in a Clean/Onion/DI architecture scenario. There are two kinds of errors in this case.
-1. Unexpected error (e.g., DB connection): the error should be handled either (a) in the persistence layer (e.g., retry) or at the edge of the originating application interaction that caused it (e.g., user request or file ingestion). If it "bubbles out," then the application layer must choose how to contain the failure (fail the request; fail the file; fail only the failed record(s) in the file; panic/die). 
+1. Unexpected error (e.g., DB connection): the error should be handled either (a) in the persistence layer (e.g., retry) or at the edge of the originating application interaction that caused it (e.g., user request or file ingestion). If it "bubbles out," then the application layer must choose how to contain the failure (fail the request; fail the file; fail only the failed record(s) in the file; panic/die).
 2. Domain-expected error (e.g., unknown foreign key reference): the error must be "translated" to an implementation-agnostic form.
 
 In C#, environmental errors such as this are well-established as "exceptional" even in terms of the recommendation above. (They form the boundary-cases of what I would consider "exceptional".) Unless it should be handled at a given level, it can be ignored/bubbled.
 
-In a simple call stack, both have their place. Where it gets interesting is in the indirect case. This will always be the case . But now that we've invoked these, a new discipline is in effect that clarifies the siutation immediately, and makes the situation more clear. 
+In a simple call stack, both have their place. Where it gets interesting is in the indirect case. This will always be the case . But now that we've invoked these, a new discipline is in effect that clarifies the siutation immediately, and makes the situation more clear.
 
 ```mermaid
 classDiagram
@@ -124,7 +124,7 @@ A strict DU handling of (1) requires a translating to a Domain-specific or globa
 
 Idiomatic C# for (1) will rely on exception-bubbling. For (2) it will require another method. This is where things get [controversial](#foot-2): do we use another exception type, or something different? Our options are limited by `async Task<..>` in this case: we can't fall back on `out` parameters. My (imperfect) preference(s): name the method `Try..(..)` and for
 * binary error state (error or no error)
-  * with no result: `bool`. 
+  * with no result: `bool`.
   * with result value: `Result?`.
   * These sufficiently communicate that an "alternate" state may occur. The downside is that it relies on naming convention and/or commentary (xmldoc) to explain the return value.
 * multi-error state (one of several possible errors): first, attempt to avoid this. It adds complexity that potentially makes the contract stickier/leakier. But if necessary,

@@ -21,6 +21,9 @@ public static class EnumerableExt
     /// <summary>
     /// <see cref="Enumerable.ToList{TSource}(IEnumerable{TSource})"/>, but preserves null.
     /// </summary>
+    /// <remarks>
+    /// Gonna be straight with you, chief: I don't remember if or why this was interesting.
+    /// </remarks>
     public static List<T>? Clone<T>(this IEnumerable<T>? listToClone) => listToClone?.ToList();
 
     /// <summary>

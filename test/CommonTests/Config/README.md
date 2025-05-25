@@ -1,8 +1,27 @@
 # Configuration patterns
-## `ISettingPointer`
-...
+## `ISettingPointer` and `ISettings`
+These are wafer-thin interfaces that enable a few handy startup-time extensions for reading and registering
+configuration objects. It's kinda sneaky though, because they subtly enforce conventional and centralized
+configuration. Let's say, "encourage."
 
-##  Storage Service Example
+The simplest case for use of the two interfaces is shown in `GenericNestedConfig_SingleUse`.
+
+To see the value of the method, consider the more "traditional" way of relating Parent/Sub. Without a way of
+separating the different consumers of `SubService`, what would our options be? Usually, it would be assumed that
+`ParentService` would assume the load of hosting the configuration entities and then building `SubService`. This
+might be done directly or through a factory object. If there are lifetime considerations for `SubService`,
+`ParentService` owns those as well, because it owns the `SubService` instance that it created. Note how this
+undercuts SRP within Parent. It also leads to abstraction-leak: even if it can use the factory to rely only on
+the contract `ISubService`, it still needs to "know" about the configuration.
+
+By allowing the `SubService` to manage its own configuration and conventions, `ParentService` is now released
+from the responsibilities of managing it at all. It doesn't need to define configuration it doesn't need, just
+a path where sub-configurations will be stored. It
+doesn't need to "know" about `SubService`'s configuration needs. And all the `ISubService` lifecycle concerns
+(which might be different for different `ISubService` implementations!) are left
+to the DI container.
+
+## Storage Service Example
 
 A "storage service" is a bread-and-butter bit of infrastructure code that is necessary for almost any non-trivial
 enterprise project. However, there really is no point in attempting to release one as a library: one would end up

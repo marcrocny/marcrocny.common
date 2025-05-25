@@ -8,7 +8,7 @@ namespace MarcRocNy.Common.Config;
 /// empty-config behavior to consistently fall back to a config object with sensible defaults.
 /// </summary>
 /// <remarks>
-/// As noted on <see cref="ISettingPointer"/>, in a mixed pre `net7.0` environment, this can be implemented using reflection
+/// As noted on <see cref="ISettings"/>, in a mixed pre `net7.0` environment, this can be implemented using reflection
 /// against a conventionally-named `const` field.
 /// In most cases this will lead to fast-failure (startup-time) of any mis-implemented objects.
 /// </remarks>
@@ -16,18 +16,18 @@ public static class ConfigurationExt
 {
     /// <summary>
     /// <see cref="OptionsConfigurationServiceCollectionExtensions.Configure{TOptions}(IServiceCollection, IConfiguration)"/>, 
-    /// but from the root, with the section-name (or path) pulled from <see cref="ISettingPointer.SectionName"/>.
+    /// but from the root, with the section-name (or path) pulled from <see cref="ISettings.SectionName"/>.
     /// </summary>
     public static IServiceCollection Configure<TOptions>(this IServiceCollection services, IConfigurationRoot configuration)
-        where TOptions : class, ISettingPointer, new()
+        where TOptions : class, ISettings, new()
         => services.Configure<TOptions>(configuration.GetSection<TOptions>());
 
     /// <summary>
     /// Like, <see cref="ConfigurationBinder.Get{T}(IConfiguration)"/>, but from the root, with the section-name (path) pulled from
-    /// <see cref="ISettingPointer.SectionName"/>. Also, never returns `null`.
+    /// <see cref="ISettings.SectionName"/>. Also, never returns `null`.
     /// </summary>
     public static TOptions GetSettings<TOptions>(this IConfigurationRoot configuration)
-        where TOptions : class, ISettingPointer, new()
+        where TOptions : class, ISettings, new()
     {
         return configuration.GetSection<TOptions>().Get<TOptions>() ?? new();
     }
@@ -37,7 +37,7 @@ public static class ConfigurationExt
     /// <see cref="GetSettings{TOptions}(IConfigurationRoot)"/>
     /// </summary>
     public static TOptions GetAndConfigure<TOptions>(this IServiceCollection services, IConfigurationRoot configuration)
-        where TOptions : class, ISettingPointer, new()
+        where TOptions : class, ISettings, new()
     {
         var section = configuration.GetSection<TOptions>();
         services.Configure<TOptions>(section);
@@ -48,6 +48,6 @@ public static class ConfigurationExt
     /// Pulls the configuration section for <see cref="ISettingPointer.SectionName"/>.
     /// </summary>
     public static IConfiguration GetSection<TOptions>(this IConfigurationRoot configuration)
-        where TOptions : class, ISettingPointer
+        where TOptions : class, ISettings
         => configuration.GetSection(TOptions.SectionName);
 }

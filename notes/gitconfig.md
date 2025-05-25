@@ -24,7 +24,7 @@ Not much to it, really just shortcuts for everyday stuff. There's really no poin
 	  currentBranch=`git currentbranch` ; \
 	  git push --set-upstream origin $currentBranch ; \
 	}; f"
-    # this needs to be adjusted for the specific 
+    # this needs to be adjusted for the specific remote URL format
 	newpr = "!f() { \
 	  currentBranch=`git currentbranch` ; \
 	  url=`git remote get-url origin` ; \
