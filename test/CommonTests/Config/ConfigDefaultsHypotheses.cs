@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +14,21 @@ public class ConfigDefaultsHypotheses
     public record HasDefaults(int Count = 1, string Name = "foo");
 
     [Fact]
-    public void GetWhenEmptyWithoutParameterless_ReturnsNull()
+    public void GetWhenEmptyWithDefaults_ReturnsNull()
+    {
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+            [
+                //["count"] = "4",
+                //new("neume", "bar"),
+            ])
+            .Build();
+
+        configuration.Get<HasDefaults>().Should().BeNull(); //.BeEquivalentTo(new NoParameterless(Name: "bar"));
+    }
+
+    [Fact]
+    public void GetWhenNonEmptynonMatching_ReturnsDefaults()
     {
         IConfiguration configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(
@@ -25,8 +38,9 @@ public class ConfigDefaultsHypotheses
             ])
             .Build();
 
-        configuration.Get<HasDefaults>().Should().BeNull(); //.BeEquivalentTo(new NoParameterless(Name: "bar"));
+        configuration.Get<HasDefaults>().Should().BeEquivalentTo(new HasDefaults());
     }
+
 
     public class HasParameterless { public int Count { get; init; } = 1; public string Name { get; init; } = "foo"; }
 

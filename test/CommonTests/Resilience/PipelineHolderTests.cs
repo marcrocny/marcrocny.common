@@ -67,9 +67,10 @@ public class PipelineHolderTests
     /// solution "inverts" by using a marker-generic and conventional config.
     /// </summary>
     /// <typeparam name="TParentMarker"></typeparam>
-    public record RetryConfiguration<TParentMarker> : ISettingPointer
+    public record RetryConfiguration<TParentMarker> : ISettings
+        where TParentMarker : ISettingPointer
     {
-        public static string SectionName { get; } = $"{typeof(TParentMarker).Name}:Retry";
+        public static string SectionName { get; } = $"{TParentMarker.SectionName}:Retry";
 
         public int MaxRetryAttempts { get; init; } = 3;
 
@@ -83,6 +84,7 @@ public class PipelineHolderTests
     /// </summary>
     /// <typeparam name="TParentMarker"></typeparam>
     public class ConventionalConfigRetry<TParentMarker> : IPollyPipeline<TParentMarker>
+        where TParentMarker : ISettingPointer
     {
         public static readonly Type[] Retryable = [
             typeof(SocketException),
@@ -114,9 +116,11 @@ public class PipelineHolderTests
         }
     }
 
-    public class RetryConsumer(IPollyPipeline<RetryConsumer> pollyPipeline)
+    public class RetryConsumer(IPollyPipeline<RetryConsumer> pollyPipeline) : ISettingPointer
     {
         private readonly ResiliencePipeline retry = pollyPipeline.Pipeline;
+
+        public static string SectionName { get; } = nameof(RetryConsumer);
 
         /// <summary>
         /// Returns attempts.
@@ -169,7 +173,7 @@ public class PipelineHolderTests
         var consumer = services.GetRequiredService<RetryConsumer>();
 
         // assert
-        config.Value.Should().BeEquivalentTo(new RetryConfiguration<int>
+        config.Value.Should().BeEquivalentTo(new RetryConfiguration<RetryConsumer>
         {
             MaxRetryAttempts = 5,
             BackoffType = DelayBackoffType.Linear,
