@@ -28,6 +28,10 @@ internal static class Ghost
 
             public void Dispose() { }
 
+            /// <summary>
+            /// Where the magic happens: just return `false` on any call to `MoveNext()`.
+            /// </summary>
+            /// <returns>`false`, every time.</returns>
             public bool MoveNext() => false;
 
             public void Reset() { }
